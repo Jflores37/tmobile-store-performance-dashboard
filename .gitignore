@@ -1,0 +1,15 @@
+# Excel lock / temp files
+~$*.xlsx
+~$*.xls
+~$*.xlsm
+*.tmp
+
+# OS junk
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Build scaffolding for the synthetic workbook (not part of the deliverable)
+build_workbook.py
+export_shots.ps1

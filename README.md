@@ -31,8 +31,9 @@ added month-to-goal tracking so the store could see where it stood day to day.
 
 ## What it changed
 
-I rolled the rebuilt tracker out on the floor, and once the team was running on numbers
-they could trust, my store moved into the **top 25% of the district**.
+I rolled the rebuilt tracker out on the floor. The store was already performing well —
+what changed is that the team finally had numbers they could trust to hold that, instead
+of a tracker nobody opened because it didn't add up.
 
 For this portfolio version I also built the manager-facing layer I think every store
 tracker should have on top of it — a KPI dashboard, an auto-ranking team leaderboard,

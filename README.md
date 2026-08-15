@@ -24,9 +24,9 @@ A single Excel workbook — 35 tabs — that handles a full month end to end:
 
 ## The backstory
 
-The tracker I inherited was broken. 403 formula errors, #REF! all over it, and totals
-that didn't actually total — so nobody trusted it and nobody used it. I rebuilt it from
-the ground up: fixed every reference, made the daily and monthly totals reliable, and
+The tracker I inherited wasn't holding up. Formulas that broke as the month went on and
+totals you couldn't fully rely on — so the team didn't really use it. I rebuilt it from
+the ground up: fixed the references, made the daily and monthly totals reliable, and
 added month-to-goal tracking so the store could see where it stood day to day.
 
 ## What it changed
@@ -76,7 +76,7 @@ Two options:
 ## Skills demonstrated
 
 - **Excel** — advanced formulas, conditional formatting, charts, and multi-sheet references
-- **Data cleaning** — took a workbook with 403 formula errors and made it reliable
+- **Data cleaning** — took an unreliable workbook and made its numbers trustworthy
 - **Dashboard design** — KPI cards, leaderboard, and heatmap built for a non-technical audience
 - **KPI definition** — picked and defined the metrics that actually move a retail store
 - **Stakeholder communication** — turned raw daily entries into something a team and a district can read at a glance

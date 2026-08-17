@@ -1,11 +1,24 @@
 # Store Performance Tracker
 
-The daily performance tracker I built and ran for a T-Mobile retail store — rebuilt here
-as a clean, reproducible version. One row per transaction, one tab per day, rolling up to
-per-expert totals, a team leaderboard, and month-to-goal tracking.
+> ## 🔒 This workbook contains synthetic data only
+>
+> Every name, identifier, and number in this file was randomly generated. There are **no
+> real employees, customers, device identifiers, or store numbers** anywhere in it, and
+> none were used to produce it.
+>
+> Identifiers are deliberately formatted as `SKU-1923` and `MOCK-904935` so they cannot be
+> mistaken for real ones at a glance, people are `Expert 01…12`, and **all 36 tabs carry
+> this notice in row 2** — you don't have to read this file to know what you're looking at.
+>
+> The tracker this is modeled on held real employee names and customer device identifiers.
+> That is precisely why none of it was published here: the structure and the formulas are
+> portable, the data is not.
 
-> **The data in this workbook is mock.** No real employees, customers, device IDs, or
-> store numbers. The structure, the metrics, and the formulas are the real thing.
+---
+
+The daily performance tracker I built and ran for a T-Mobile retail store, rebuilt as a
+clean, reproducible version. One row per transaction, one tab per day, rolling up to
+per-expert totals, a team leaderboard, and month-to-goal tracking.
 
 ![Dashboard](screenshots/01-dashboard.png)
 
@@ -73,12 +86,13 @@ Excel, or upload it to Google Drive — it converts to Sheets cleanly.
 
 ## Limitations & next
 
-Mock data, so the numbers demonstrate the mechanics rather than a real month. Business-day
-logic is simplified. Next: a month-over-month comparison tab, and pace-to-goal (are we on
-track as of day *n*) rather than only end-of-month attainment.
+Synthetic data, so the numbers demonstrate the mechanics rather than a real month.
+Business-day logic is simplified. Next: a month-over-month comparison tab, and pace-to-goal
+(are we on track as of day *n*) rather than only end-of-month attainment.
 
 ## Skills demonstrated
 
 Spreadsheet engineering (multi-sheet 3-D references, `SUMIF` roll-ups, `RANK`, `IFERROR`) ·
 data validation and input design · conditional formatting · KPI definition · dashboard
-design · designing a tool other people have to use every day.
+design · handling sensitive operational data responsibly · designing a tool other people
+have to use every day.

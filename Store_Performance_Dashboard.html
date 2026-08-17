@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Store Performance Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; }
+
+  .viz-root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --plane:          #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --grid:           #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6;
+    --reference:      #898781;
+    --good:           #0ca30c;
+    --warning:        #fab219;
+    --critical:       #d03b3b;
+    --success-text:   #006300;
+    --ramp-0: #cde2fb; --ramp-1: #9ec5f4; --ramp-2: #86b6ef; --ramp-3: #6da7ec;
+    --ramp-4: #3987e5; --ramp-5: #2a78d6; --ramp-6: #256abf; --ramp-7: #1c5cab;
+    --ramp-8: #184f95; --ramp-9: #0d366b;
+    --shadow: 0 1px 2px rgba(11,11,11,0.04), 0 8px 24px rgba(11,11,11,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root { color-scheme: dark;
+      --surface-1: #1a1a19; --plane: #0d0d0d;
+      --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+      --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5; --success-text: #0ca30c;
+      --ramp-0: #0d366b; --ramp-1: #184f95; --ramp-2: #1c5cab; --ramp-3: #256abf;
+      --ramp-4: #2a78d6; --ramp-5: #3987e5; --ramp-6: #5598e7; --ramp-7: #86b6ef;
+      --ramp-8: #9ec5f4; --ramp-9: #cde2fb;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] .viz-root { color-scheme: dark;
+    --surface-1: #1a1a19; --plane: #0d0d0d;
+    --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+    --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5; --success-text: #0ca30c;
+    --ramp-0: #0d366b; --ramp-1: #184f95; --ramp-2: #1c5cab; --ramp-3: #256abf;
+    --ramp-4: #2a78d6; --ramp-5: #3987e5; --ramp-6: #5598e7; --ramp-7: #86b6ef;
+    --ramp-8: #9ec5f4; --ramp-9: #cde2fb;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  .viz-root {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--plane);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px 16px 56px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  /* ---- header ---------------------------------------------------------- */
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start;
+           justify-content: space-between; margin-bottom: 22px; }
+  h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .sub { font-size: 0.8125rem; color: var(--text-secondary); margin: 0; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.6875rem; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 6px 11px; border-radius: 999px;
+    background: color-mix(in srgb, var(--warning) 16%, var(--surface-1));
+    color: var(--text-primary);
+    border: 1px solid color-mix(in srgb, var(--warning) 45%, transparent);
+    white-space: nowrap;
+  }
+  .btn {
+    font: inherit; font-size: 0.75rem; font-weight: 550;
+    padding: 7px 12px; border-radius: 8px; cursor: pointer;
+    background: var(--surface-1); color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .btn:hover { color: var(--text-primary); }
+  .btn[aria-pressed="true"] { color: var(--text-primary); border-color: var(--baseline); }
+
+  /* ---- cards ----------------------------------------------------------- */
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px; box-shadow: var(--shadow);
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 0.6875rem; font-weight: 650; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--text-muted); margin: 0 0 2px;
+  }
+  .card-note { font-size: 0.75rem; color: var(--text-secondary); margin: 0 0 16px; }
+
+  /* ---- hero ------------------------------------------------------------ */
+  .hero-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 16px; }
+  .hero-num { font-size: 3.25rem; font-weight: 660; letter-spacing: -0.035em; line-height: 1; }
+  .hero-goal { font-size: 0.8125rem; color: var(--text-secondary); }
+  .hero-goal b { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .hero-delta { font-size: 0.8125rem; font-weight: 600; color: var(--success-text); margin-left: auto; }
+  .meter { height: 8px; border-radius: 4px; background: var(--grid); margin-top: 16px; overflow: hidden; }
+  .meter > i { display: block; height: 100%; border-radius: 4px; background: var(--series-1); }
+  .meter-labels { display: flex; justify-content: space-between; margin-top: 7px;
+                  font-size: 0.6875rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+  /* ---- metric tiles ---------------------------------------------------- */
+  /* 2-up on a phone, 4-up above — never 6+2, which leaves a ragged last row */
+  .tiles { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (min-width: 760px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .tile { background: var(--surface-1); border: 1px solid var(--border);
+          border-radius: 12px; padding: 14px; box-shadow: var(--shadow); }
+  .tile-label { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.05em;
+                text-transform: uppercase; color: var(--text-muted); }
+  .tile-val { font-size: 1.5rem; font-weight: 640; letter-spacing: -0.02em; margin: 6px 0 2px; }
+  .tile-goal { font-size: 0.6875rem; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .tile-bar { height: 5px; border-radius: 3px; background: var(--grid); margin-top: 11px; overflow: hidden; }
+  .tile-bar > i { display: block; height: 100%; border-radius: 3px; }
+  .status { display: inline-flex; align-items: center; gap: 4px; float: right;
+            font-size: 0.75rem; font-weight: 650; font-variant-numeric: tabular-nums;
+            color: var(--text-primary); }
+  .status .glyph { font-size: 0.6875rem; line-height: 1; }
+  .g-good .glyph { color: var(--good); }
+  .g-warning .glyph { color: var(--warning); }
+  .g-critical .glyph { color: var(--critical); }
+
+  /* ---- charts ---------------------------------------------------------- */
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 10px; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px;
+                 font-size: 0.75rem; color: var(--text-secondary); }
+  .swatch { width: 16px; height: 2px; border-radius: 1px; flex: none; }
+  svg { display: block; width: 100%; overflow: visible; touch-action: pan-y; }
+  .gridline { stroke: var(--grid); stroke-width: 1; }
+  .axis-text { fill: var(--text-muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+  .axis-line { stroke: var(--baseline); stroke-width: 1; }
+
+  /* ---- leaderboard ----------------------------------------------------- */
+  .lb-row { display: grid; grid-template-columns: 1.5rem 5.5rem 1fr 2.2rem;
+            align-items: center; gap: 10px; padding: 6px 6px; border-radius: 7px; }
+  .lb-row:hover { background: color-mix(in srgb, var(--text-primary) 5%, transparent); }
+  .lb-rank { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; text-align: right; }
+  .lb-name { font-size: 0.8125rem; color: var(--text-primary); white-space: nowrap; }
+  .lb-track { height: 9px; border-radius: 4px; background: var(--grid); overflow: hidden; }
+  .lb-track > i { display: block; height: 100%; border-radius: 4px; background: var(--series-1); }
+  .lb-val { font-size: 0.8125rem; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+
+  /* ---- heatmap --------------------------------------------------------- */
+  /* the ramp direction flips between modes (low always recedes toward the
+     surface), so the key is drawn from the same vars rather than described in words */
+  .ramp-key { display: flex; align-items: center; gap: 8px; margin: 0 0 12px;
+              font-size: 0.6875rem; color: var(--text-muted); }
+  .ramp-bar { display: block; width: 120px; height: 8px; border-radius: 4px;
+              border: 1px solid var(--border);
+              background: linear-gradient(90deg, var(--ramp-0), var(--ramp-2),
+                var(--ramp-4), var(--ramp-6), var(--ramp-8), var(--ramp-9)); }
+  .hm-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; padding: 0 4px 4px; }
+  /* fixed layout + min-width so the month scrolls rather than squashing the cells */
+  .hm { border-collapse: separate; border-spacing: 2px; table-layout: fixed;
+        min-width: calc(6.5rem + 31 * 22px); }
+  .hm th { font-size: 0.625rem; font-weight: 600; color: var(--text-muted);
+           text-transform: uppercase; letter-spacing: 0.04em; padding: 0 8px 0 0;
+           text-align: right; white-space: nowrap; width: 6.5rem; }
+  .hm thead th { text-align: center; padding: 0 0 4px; font-variant-numeric: tabular-nums;
+                 letter-spacing: 0; text-transform: none; }
+  .hm td { width: 20px; height: 20px; border-radius: 3px; padding: 0; }
+
+  /* ---- tooltip --------------------------------------------------------- */
+  .tip {
+    position: fixed; z-index: 50; pointer-events: none; opacity: 0;
+    transition: opacity .1s; background: var(--surface-1);
+    border: 1px solid var(--baseline); border-radius: 9px; padding: 9px 11px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18); font-size: 0.75rem;
+    color: var(--text-primary); white-space: nowrap; max-width: 70vw;
+  }
+  .tip b { font-variant-numeric: tabular-nums; }
+  .tip .tip-head { font-weight: 650; margin-bottom: 4px; }
+  .tip .tip-row { color: var(--text-secondary); display: flex; gap: 10px; justify-content: space-between; }
+
+  /* ---- data tables ----------------------------------------------------- */
+  .table-wrap { overflow-x: auto; margin-top: 14px; }
+  table.data { border-collapse: collapse; font-size: 0.75rem; width: 100%; }
+  table.data th, table.data td { padding: 5px 10px; text-align: right;
+    border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.data th { color: var(--text-muted); font-weight: 600; text-align: right; }
+  table.data th:first-child, table.data td:first-child { text-align: left; }
+  [hidden] { display: none !important; }
+
+  footer { font-size: 0.75rem; color: var(--text-muted); text-align: center;
+           margin-top: 26px; line-height: 1.6; }
+
+  @media (max-width: 480px) {
+    .hero-num { font-size: 2.75rem; }
+    .hero-delta { margin-left: 0; width: 100%; }
+    .lb-row { grid-template-columns: 1.25rem 4.75rem 1fr 2rem; gap: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="viz-root">
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>Store Performance</h1>
+      <p class="sub">Monthly tracker &middot; 31 days &middot; 12 mobile experts &middot; 810 transactions</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="tableBtn" aria-pressed="false">Table view</button>
+      <button class="btn" id="themeBtn">Theme</button>
+      <span class="pill">Mock data</span>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="card">
+    <p class="card-title">Acts + Pre &mdash; month to date</p>
+    <div class="hero-top">
+      <span class="hero-num" id="heroNum">668</span>
+      <span class="hero-goal">of <b>645</b> goal</span>
+      <span class="hero-delta" id="heroDelta">&#9650; +23 over goal</span>
+    </div>
+    <div class="meter"><i id="heroMeter" style="width:100%"></i></div>
+    <div class="meter-labels"><span>0</span><span id="heroPct">104% of goal</span><span>645</span></div>
+  </section>
+
+  <!-- TILES -->
+  <div class="tiles" id="tiles"></div>
+
+  <!-- PACE -->
+  <section class="card" style="margin-top:14px">
+    <p class="card-title">Pace to goal</p>
+    <p class="card-note">Cumulative Acts&nbsp;+&nbsp;Pre against the straight-line pace needed to finish the month at goal.</p>
+    <div class="legend">
+      <span><i class="swatch" style="background:var(--series-1);height:2px"></i> Actual</span>
+      <span><i class="swatch" style="background:repeating-linear-gradient(90deg,var(--reference) 0 4px,transparent 4px 7px)"></i> Required pace</span>
+    </div>
+    <svg id="pace" viewBox="0 0 720 260" role="img" aria-label="Cumulative Acts plus Pre versus required pace, day 1 to 31"></svg>
+    <div class="table-wrap" id="paceTable" hidden></div>
+  </section>
+
+  <!-- LEADERBOARD -->
+  <section class="card">
+    <p class="card-title">Team leaderboard</p>
+    <p class="card-note">Ranked by Acts&nbsp;+&nbsp;Pre. Ties share a rank.</p>
+    <div id="lb"></div>
+    <div class="table-wrap" id="lbTable" hidden></div>
+  </section>
+
+  <!-- HEATMAP -->
+  <section class="card">
+    <p class="card-title">Daily trend</p>
+    <p class="card-note">Each row is scaled to its own range, so cells compare days within a metric &mdash; not metrics against each other. Scroll sideways for the full month.</p>
+    <div class="ramp-key">
+      <span>Low</span>
+      <i class="ramp-bar"></i>
+      <span>High</span>
+    </div>
+    <div class="hm-scroll"><table class="hm" id="hm"></table></div>
+    <div class="table-wrap" id="hmTable" hidden></div>
+  </section>
+
+  <footer>
+    Every name, identifier and figure in this dashboard is randomly generated.<br>
+    No real employees, customers, device identifiers or store numbers appear anywhere in it.
+  </footer>
+</div>
+</div>
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ------------------------------------------------------------------ data */
+  var METRICS = [
+    { key: "Acts",    label: "Activations",   total: 583,       goal: 555,   money: false },
+    { key: "Pre",     label: "Prepaid",       total: 85,        goal: 90,    money: false },
+    { key: "Devices", label: "Devices",       total: 718,       goal: 675,   money: false },
+    { key: "Acc $",   label: "Accessory $",   total: 47740.97,  goal: 48700, money: true  },
+    { key: "BTS",     label: "BTS",           total: 225,       goal: 235,   money: false },
+    { key: "Hint",    label: "Home Internet", total: 31,        goal: 30,    money: false },
+    { key: "TFB",     label: "TFB",           total: 22,        goal: 20,    money: false },
+    { key: "VAF $",   label: "Value-add $",   total: 6702,      goal: 6600,  money: true  }
+  ];
+
+  var LEADERS = [
+    [1,"Expert 01",59,8,67,5434.12],[2,"Expert 07",53,10,63,3121.58],
+    [3,"Expert 08",55,7,62,4901.35],[4,"Expert 11",48,10,58,4407.87],
+    [4,"Expert 02",52,6,58,3793.58],[6,"Expert 03",47,10,57,3860.66],
+    [7,"Expert 06",50,6,56,3853.29],[8,"Expert 04",49,6,55,3058.01],
+    [9,"Expert 10",46,8,54,4066.80],[10,"Expert 09",44,7,51,4427.77],
+    [11,"Expert 05",44,5,49,3491.97],[12,"Expert 12",36,2,38,3323.97]
+  ];
+
+  /* day, Acts, Pre, TFB, BTS, Hint, VAF$, Devices, Acc$ */
+  var DAILY = [
+    [1,13,1,0,7,0,101,17,1249.81],[2,17,4,0,11,3,246,31,1860.26],[3,24,2,0,7,0,225,28,1687.12],
+    [4,21,1,3,3,1,262,23,1993.77],[5,22,5,0,12,0,216,31,2510.31],[6,17,4,0,6,0,253,20,1014.14],
+    [7,27,1,5,8,1,199,27,1962.03],[8,22,1,0,11,0,103,25,1836.66],[9,20,3,0,11,0,306,25,1412.21],
+    [10,19,2,0,5,2,200,23,1425.92],[11,21,3,1,7,0,180,21,1844.66],[12,16,3,0,8,2,218,22,1129.91],
+    [13,22,5,0,6,2,288,31,2057.00],[14,18,1,0,5,0,184,21,1152.86],[15,18,0,0,8,1,219,18,920.11],
+    [16,19,2,0,9,2,251,25,1146.04],[17,14,4,1,8,1,130,22,1637.22],[18,15,2,0,5,0,163,16,1175.45],
+    [19,13,3,3,4,1,228,19,1222.89],[20,20,1,0,7,0,222,20,1578.53],[21,23,5,1,10,2,263,28,2189.88],
+    [22,23,3,1,8,2,250,28,2311.62],[23,16,2,3,7,1,129,22,1515.93],[24,10,4,0,6,1,132,16,1021.88],
+    [25,20,2,0,7,1,257,25,1594.77],[26,15,2,0,3,0,312,17,789.03],[27,21,6,1,6,3,285,27,2238.67],
+    [28,21,2,0,6,2,121,26,1777.85],[29,17,5,2,10,2,296,24,791.30],[30,23,5,1,8,1,209,24,1334.58],
+    [31,16,1,0,6,0,254,16,1358.56]
+  ];
+
+  var HM_ROWS = [
+    { label: "Activations",   col: 1, money: false },
+    { label: "Prepaid",       col: 2, money: false },
+    { label: "TFB",           col: 3, money: false },
+    { label: "BTS",           col: 4, money: false },
+    { label: "Home internet", col: 5, money: false },
+    { label: "Value-add $",   col: 6, money: true  },
+    { label: "Devices",       col: 7, money: false },
+    { label: "Accessory $",   col: 8, money: true  }
+  ];
+
+  var HERO_GOAL = 645;
+
+  /* ----------------------------------------------------------------- utils */
+  function fmt(v, money) {
+    if (money) return "$" + Math.round(v).toLocaleString("en-US");
+    return Math.round(v).toLocaleString("en-US");
+  }
+  function el(tag, cls, txt) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt != null) n.textContent = txt;
+    return n;
+  }
+  /* status is never colour alone — each returns a glyph + a worded label */
+  function statusOf(pct) {
+    if (pct >= 1)    return { cls: "g-good",     glyph: "▲", word: "at or over goal", color: "var(--good)" };
+    if (pct >= 0.95) return { cls: "g-warning",  glyph: "▼", word: "just under goal", color: "var(--warning)" };
+    return               { cls: "g-critical", glyph: "▼", word: "under goal",      color: "var(--critical)" };
+  }
+
+  /* --------------------------------------------------------------- tooltip */
+  var tip = document.getElementById("tip");
+  function showTip(html, x, y) {
+    tip.innerHTML = html;
+    tip.style.opacity = "1";
+    var r = tip.getBoundingClientRect();
+    var left = x + 14, top = y - r.height - 12;
+    if (left + r.width > window.innerWidth - 8) left = x - r.width - 14;
+    if (left < 8) left = 8;
+    if (top < 8) top = y + 18;
+    tip.style.left = left + "px";
+    tip.style.top = top + "px";
+  }
+  function hideTip() { tip.style.opacity = "0"; }
+  document.addEventListener("scroll", hideTip, true);
+
+  /* ------------------------------------------------------------------ hero */
+  var heroTotal = 0;
+  for (var i = 0; i < DAILY.length; i++) heroTotal += DAILY[i][1] + DAILY[i][2];
+  var heroPct = heroTotal / HERO_GOAL;
+  var heroSt  = statusOf(heroPct);
+  document.getElementById("heroNum").textContent = heroTotal.toLocaleString("en-US");
+  document.getElementById("heroPct").textContent = Math.round(heroPct * 100) + "% of goal";
+  document.getElementById("heroMeter").style.width = Math.min(100, heroPct * 100) + "%";
+  var hd = document.getElementById("heroDelta");
+  hd.textContent = heroSt.glyph + " " + (heroTotal >= HERO_GOAL ? "+" : "") +
+                   (heroTotal - HERO_GOAL) + " vs goal";
+  hd.style.color = heroTotal >= HERO_GOAL ? "var(--success-text)" : "var(--critical)";
+
+  /* ----------------------------------------------------------------- tiles */
+  var tilesEl = document.getElementById("tiles");
+  METRICS.forEach(function (m) {
+    var pct = m.total / m.goal, st = statusOf(pct);
+    var t = el("div", "card tile");
+    t.style.margin = "0";
+
+    var s = el("span", "status " + st.cls);
+    s.appendChild(el("span", "glyph", st.glyph));
+    s.appendChild(document.createTextNode(Math.round(pct * 100) + "%"));
+    t.appendChild(s);
+    t.appendChild(el("div", "tile-label", m.label));
+    t.appendChild(el("div", "tile-val", fmt(m.total, m.money)));
+    t.appendChild(el("div", "tile-goal", "goal " + fmt(m.goal, m.money) + " · " + st.word));
+
+    var bar = el("div", "tile-bar"), fill = el("i");
+    fill.style.width = Math.min(100, pct * 100) + "%";
+    fill.style.background = st.color;
+    bar.appendChild(fill);
+    t.appendChild(bar);
+    tilesEl.appendChild(t);
+  });
+
+  /* ------------------------------------------------------------ pace chart */
+  var cum = [], run = 0;
+  for (var d = 0; d < DAILY.length; d++) { run += DAILY[d][1] + DAILY[d][2]; cum.push(run); }
+  var need = cum.map(function (_, idx) { return HERO_GOAL * (idx + 1) / DAILY.length; });
+
+  var svg = document.getElementById("pace");
+  var NS = "http://www.w3.org/2000/svg";
+  function mk(tag, attrs) {
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+
+  /* The viewBox is matched to the container's pixel width so one SVG unit is
+     one CSS pixel. Otherwise a fixed 720-wide viewBox squeezed into a 380px
+     phone renders the 10px axis type at ~5px — unreadable. Redraw on resize. */
+  var ML = 38, MR = 48, MT = 12, MB = 26, yMax = 800;
+  var W, H, PW, PH, cross, hoverDot;
+
+  function px(idx) { return ML + PW * idx / (DAILY.length - 1); }
+  function py(v)   { return MT + PH * (1 - v / yMax); }
+
+  function drawPace() {
+    W = Math.max(280, Math.round(svg.parentNode.getBoundingClientRect().width));
+    H = W < 460 ? 210 : 260;
+    PW = W - ML - MR; PH = H - MT - MB;
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    for (var g = 0; g <= 800; g += 200) {
+      svg.appendChild(mk("line", { x1: ML, y1: py(g), x2: ML + PW, y2: py(g), class: "gridline" }));
+      var tl = mk("text", { x: ML - 8, y: py(g) + 3.5, class: "axis-text", "text-anchor": "end" });
+      tl.textContent = g; svg.appendChild(tl);
+    }
+    svg.appendChild(mk("line", { x1: ML, y1: py(0), x2: ML + PW, y2: py(0), class: "axis-line" }));
+    [1, 5, 10, 15, 20, 25, 31].forEach(function (day) {
+      var tx = mk("text", { x: px(day - 1), y: H - 8, class: "axis-text", "text-anchor": "middle" });
+      tx.textContent = day; svg.appendChild(tx);
+    });
+
+    function path(arr) {
+      return arr.map(function (v, idx) { return (idx ? "L" : "M") + px(idx) + " " + py(v); }).join(" ");
+    }
+    svg.appendChild(mk("path", { d: path(need), fill: "none", stroke: "var(--reference)",
+      "stroke-width": 2, "stroke-dasharray": "5 4", "stroke-linecap": "round" }));
+    svg.appendChild(mk("path", { d: path(cum), fill: "none", stroke: "var(--series-1)",
+      "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" }));
+
+    /* direct label on the series — identity never rests on colour alone */
+    var last = cum.length - 1;
+    svg.appendChild(mk("circle", { cx: px(last), cy: py(cum[last]), r: 4,
+      fill: "var(--series-1)", stroke: "var(--surface-1)", "stroke-width": 2 }));
+    var endLbl = mk("text", { x: px(last) + 9, y: py(cum[last]) + 4,
+      class: "axis-text", "text-anchor": "start", fill: "var(--text-primary)", "font-weight": "650" });
+    endLbl.textContent = cum[last];
+    svg.appendChild(endLbl);
+
+    cross = mk("line", { y1: MT, y2: MT + PH, stroke: "var(--baseline)", "stroke-width": 1, opacity: 0 });
+    svg.appendChild(cross);
+    hoverDot = mk("circle", { r: 5, fill: "var(--series-1)", stroke: "var(--surface-1)",
+      "stroke-width": 2, opacity: 0 });
+    svg.appendChild(hoverDot);
+
+    var hit = mk("rect", { x: 0, y: 0, width: W, height: H, fill: "transparent" });
+    svg.appendChild(hit);
+    hit.addEventListener("pointermove", paceMove);
+    hit.addEventListener("pointerdown", paceMove);
+    hit.addEventListener("pointerleave", function () {
+      cross.setAttribute("opacity", 0); hoverDot.setAttribute("opacity", 0); hideTip();
+    });
+  }
+
+  function paceMove(ev) {
+    var box = svg.getBoundingClientRect();
+    var sx = (ev.clientX - box.left) / box.width * W;
+    var idx = Math.round((sx - ML) / PW * (DAILY.length - 1));
+    idx = Math.max(0, Math.min(DAILY.length - 1, idx));
+    cross.setAttribute("x1", px(idx)); cross.setAttribute("x2", px(idx));
+    cross.setAttribute("opacity", 1);
+    hoverDot.setAttribute("cx", px(idx)); hoverDot.setAttribute("cy", py(cum[idx]));
+    hoverDot.setAttribute("opacity", 1);
+    var diff = Math.round(cum[idx] - need[idx]);
+    showTip(
+      '<div class="tip-head">Day ' + (idx + 1) + '</div>' +
+      '<div class="tip-row"><span>Actual</span><b>' + cum[idx] + '</b></div>' +
+      '<div class="tip-row"><span>Required pace</span><b>' + Math.round(need[idx]) + '</b></div>' +
+      '<div class="tip-row"><span>' + (diff >= 0 ? "Ahead by" : "Behind by") + '</span><b>' +
+        Math.abs(diff) + '</b></div>',
+      ev.clientX, ev.clientY);
+  }
+
+  drawPace();
+  var rzTimer;
+  window.addEventListener("resize", function () {
+    clearTimeout(rzTimer); rzTimer = setTimeout(drawPace, 150);
+  });
+
+  /* ----------------------------------------------------------- leaderboard */
+  var lbEl = document.getElementById("lb");
+  var lbMax = LEADERS[0][4];
+  LEADERS.forEach(function (r) {
+    var row = el("div", "lb-row");
+    row.appendChild(el("span", "lb-rank", r[0]));
+    row.appendChild(el("span", "lb-name", r[1]));
+    var track = el("div", "lb-track"), fill = el("i");
+    fill.style.width = (r[4] / lbMax * 100) + "%";
+    track.appendChild(fill);
+    row.appendChild(track);
+    row.appendChild(el("span", "lb-val", r[4]));
+    row.addEventListener("pointermove", function (ev) {
+      showTip('<div class="tip-head">' + r[1] + ' &middot; rank ' + r[0] + '</div>' +
+        '<div class="tip-row"><span>Acts</span><b>' + r[2] + '</b></div>' +
+        '<div class="tip-row"><span>Pre</span><b>' + r[3] + '</b></div>' +
+        '<div class="tip-row"><span>Acts + Pre</span><b>' + r[4] + '</b></div>' +
+        '<div class="tip-row"><span>Accessory $</span><b>$' +
+          Math.round(r[5]).toLocaleString("en-US") + '</b></div>', ev.clientX, ev.clientY);
+    });
+    row.addEventListener("pointerleave", hideTip);
+    lbEl.appendChild(row);
+  });
+
+  /* --------------------------------------------------------------- heatmap */
+  var hmEl = document.getElementById("hm");
+  var thead = el("thead"), htr = el("tr");
+  htr.appendChild(el("th", null, ""));
+  DAILY.forEach(function (row) {
+    htr.appendChild(el("th", null, row[0] % 5 === 0 || row[0] === 1 ? row[0] : ""));
+  });
+  thead.appendChild(htr); hmEl.appendChild(thead);
+
+  var tbody = el("tbody");
+  HM_ROWS.forEach(function (spec) {
+    var vals = DAILY.map(function (row) { return row[spec.col]; });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    var tr = el("tr");
+    tr.appendChild(el("th", null, spec.label));
+    vals.forEach(function (v, idx) {
+      var t = hi === lo ? 0.5 : (v - lo) / (hi - lo);
+      var step = Math.round(t * 9);
+      var td = el("td");
+      td.style.background = "var(--ramp-" + step + ")";
+      td.addEventListener("pointermove", function (ev) {
+        showTip('<div class="tip-head">' + spec.label + ' &middot; day ' + (idx + 1) + '</div>' +
+          '<div class="tip-row"><span>Value</span><b>' + fmt(v, spec.money) + '</b></div>' +
+          '<div class="tip-row"><span>Month range</span><b>' +
+            fmt(lo, spec.money) + " – " + fmt(hi, spec.money) + '</b></div>', ev.clientX, ev.clientY);
+      });
+      td.addEventListener("pointerleave", hideTip);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  hmEl.appendChild(tbody);
+
+  /* ------------------------------------------------------------ table view */
+  function buildTable(headers, rows) {
+    var t = el("table", "data"), th = el("thead"), tr = el("tr");
+    headers.forEach(function (h) { tr.appendChild(el("th", null, h)); });
+    th.appendChild(tr); t.appendChild(th);
+    var tb = el("tbody");
+    rows.forEach(function (r) {
+      var rr = el("tr");
+      r.forEach(function (c) { rr.appendChild(el("td", null, c)); });
+      tb.appendChild(rr);
+    });
+    t.appendChild(tb);
+    return t;
+  }
+  document.getElementById("paceTable").appendChild(buildTable(
+    ["Day", "Actual (cum.)", "Required pace", "Variance"],
+    cum.map(function (v, idx) {
+      return [idx + 1, v, Math.round(need[idx]), (v - need[idx] >= 0 ? "+" : "") + Math.round(v - need[idx])];
+    })));
+  document.getElementById("lbTable").appendChild(buildTable(
+    ["Rank", "Mobile expert", "Acts", "Pre", "Acts + Pre", "Accessory $"],
+    LEADERS.map(function (r) {
+      return [r[0], r[1], r[2], r[3], r[4], "$" + Math.round(r[5]).toLocaleString("en-US")];
+    })));
+  document.getElementById("hmTable").appendChild(buildTable(
+    ["Day"].concat(HM_ROWS.map(function (s) { return s.label; })),
+    DAILY.map(function (row) {
+      return [row[0]].concat(HM_ROWS.map(function (s) { return fmt(row[s.col], s.money); }));
+    })));
+
+  var tableBtn = document.getElementById("tableBtn"), tablesOn = false;
+  tableBtn.addEventListener("click", function () {
+    tablesOn = !tablesOn;
+    tableBtn.setAttribute("aria-pressed", String(tablesOn));
+    tableBtn.textContent = tablesOn ? "Hide tables" : "Table view";
+    ["paceTable", "lbTable", "hmTable"].forEach(function (id) {
+      document.getElementById(id).hidden = !tablesOn;
+    });
+  });
+
+  /* ------------------------------------------------------------ theme swap */
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    var cur = document.documentElement.getAttribute("data-theme");
+    if (!cur) {
+      cur = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    document.documentElement.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+})();
+</script>
+</body>
+</html>

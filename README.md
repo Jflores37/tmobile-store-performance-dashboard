@@ -92,6 +92,18 @@ shift the roll-up rows out from under every cross-sheet reference.
 Download [`Store_Performance_Tracker.xlsx`](Store_Performance_Tracker.xlsx) to open it in
 Excel, or upload it to Google Drive — it converts to Sheets cleanly.
 
+### The read-only web version
+
+[`Store_Performance_Dashboard.html`](Store_Performance_Dashboard.html) is the same month
+rendered as a standalone web page — one file, no dependencies, no network calls. Download it
+and open it in any browser.
+
+The workbook is the tool people actually type into; a spreadsheet is the wrong surface for
+*reading* a dashboard, especially on a phone. So the reporting layer is built where it can
+be laid out properly: interactive tooltips on every chart, a pace line against required pace,
+a per-metric heatmap, light and dark themes, and a table view behind a toggle so nothing is
+readable only as colour.
+
 ## Limitations & next
 
 Synthetic data, so the numbers demonstrate the mechanics rather than a real month.
@@ -103,4 +115,5 @@ Business-day logic is simplified. Next: a month-over-month comparison tab, and p
 Spreadsheet engineering (multi-sheet 3-D references, `SUMIF` roll-ups, `RANK`, `IFERROR`) ·
 data validation and input design · conditional formatting · KPI definition · dashboard
 design · handling sensitive operational data responsibly · designing a tool other people
-have to use every day.
+have to use every day · building an accessible read-only reporting layer (HTML/SVG,
+colourblind-safe palette, keyboard- and screen-reader-reachable table view).

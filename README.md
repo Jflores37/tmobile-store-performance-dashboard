@@ -6,9 +6,11 @@
 > real employees, customers, device identifiers, or store numbers** anywhere in it, and
 > none were used to produce it.
 >
-> Identifiers are deliberately formatted as `SKU-1923` and `MOCK-904935` so they cannot be
-> mistaken for real ones at a glance, people are `Expert 01…12`, and **all 36 tabs carry
-> this notice in row 2** — you don't have to read this file to know what you're looking at.
+> The SKU and IMEI columns are labelled `(mock)` in their headers, people are
+> `Expert 01…12`, and **all 36 tabs carry this notice in row 2** — you don't have to read
+> this file to know what you're looking at. The IMEIs are shaped like real ones but every
+> single value deliberately **fails the Luhn check digit**, so none of them can correspond
+> to an actual handset.
 >
 > The tracker this is modeled on held real employee names and customer device identifiers.
 > That is precisely why none of it was published here: the structure and the formulas are

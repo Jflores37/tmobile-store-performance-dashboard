@@ -65,7 +65,7 @@ underneath. Nothing to reconcile.
 
 | Tab | What it answers |
 |---|---|
-| **Dashboard** | Where are we this month? KPI cards + daily trend |
+| **Dashboard** | Are we going to make goal? Hero metric, every card against its target, team snapshot, and a **pace chart** — cumulative actual vs. required pace, so you can see a miss coming instead of confirming it on the 31st |
 | **Team Leaderboard** | Who's carrying it? `RANK` by Acts + Pre, color-scaled |
 | **Daily Trend** | Which days ran hot or cold? Heatmap across all eight metrics |
 | **Store Total** | Are we going to make goal? Month-to-date vs goal, % to goal, gap |

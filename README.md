@@ -59,6 +59,12 @@ inserted row.
 **The per-expert summary computes itself** from the entry table, with a store total
 underneath. Nothing to reconcile.
 
+**Guardrails.** The store total sums the entry table directly rather than the per-expert
+block, so a row logged without a Mobile Expert still counts — and a check cell flags it
+rather than letting the number quietly run low. Each day tab is protected with only the
+entry grid unlocked, which keeps the formula block safe and blocks row inserts that would
+shift the roll-up rows out from under every cross-sheet reference.
+
 ![A daily entry tab — validated entry on the left, automatic per-expert roll-up on the right](screenshots/03-daily-entry.png)
 
 ## What's in it

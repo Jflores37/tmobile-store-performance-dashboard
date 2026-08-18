@@ -104,6 +104,16 @@ be laid out properly: interactive tooltips on every chart, a pace line against r
 a per-metric heatmap, light and dark themes, and a table view behind a toggle so nothing is
 readable only as colour.
 
+![The same month as a standalone web page](screenshots/06-web-dashboard.png)
+
+A few things there are deliberate rather than decorative. Every status colour ships with a
+▲/▼ glyph and the percentage in text, so a red bar is never the only thing carrying "under
+goal." The heatmap's ramp direction flips between light and dark mode — low values always
+recede toward the background — so the key is drawn from the same colour variables instead of
+being described in words that would be wrong in one of the two themes. And the chart's
+coordinate space is matched to the container's pixel width, because a fixed-width one
+squeezed onto a phone renders its axis labels at about five pixels.
+
 ## Limitations & next
 
 Synthetic data, so the numbers demonstrate the mechanics rather than a real month.

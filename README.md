@@ -89,8 +89,9 @@ shift the roll-up rows out from under every cross-sheet reference.
 2. Log transactions on the numbered day tabs, one row per item.
 3. Read Dashboard, Leaderboard, and Store Total. They update live.
 
-Download [`Store_Performance_Tracker.xlsx`](Store_Performance_Tracker.xlsx) to open it in
-Excel, or upload it to Google Drive — it converts to Sheets cleanly.
+Download [`Store_Performance_Tracker.xlsx`](Store_Performance_Tracker.xlsx) and open it in
+Excel. Google Sheets is not a drop-in: the month roll-ups use 3-D sheet ranges
+(`'1:31'!Q16`), which Sheets does not support, so those totals will not calculate there.
 
 ### The read-only web version
 
